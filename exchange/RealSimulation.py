@@ -6,7 +6,8 @@ from datetime import timedelta
 from exchange.Exchange import Exchange
 from exchange.CrawData import CrawData
 from server.market_adapter import MarketAdapter
-from server.eventProcess import  meanIndicator,dualMeanStrategy
+from server.eventProcess_ma import  meanIndicator,dualMeanStrategy
+from server.eventProcess_KDJ import  KDJ
 import time
 from indicatorCalculator.IndicatorCalculator import IndicatorCalculator
 from application.application import application
@@ -26,12 +27,14 @@ class RealSimulation:
     开展实盘模拟，爬下实时数据并传入exchange，进行模拟交易。
     """
     def __init__(self,
-                 bar_time:str='30s'):
+                 bar_time:str='30s',
+                 strategy:str='ma'):
         """
         parameter
         param bar_time:提前设定好一个bar的时间，这里要求是时间加"s"并以str格式传入
         """
         self.bar_time=bar_time
+        self.strategy=strategy
 
 
     def simulation(self):
@@ -66,9 +69,13 @@ class RealSimulation:
                 market_adapter = MarketAdapter(open, high, low, close, t, True)
             else:
                 market_adapter = MarketAdapter(open, high, low, close, t, False)
-            Df = market_adapter.storage()[-30:]
-            meanIndicator.calculate(Df)
-            order = dualMeanStrategy.orderMake()
+            Df = market_adapter.storage()
+            if self.strategy=='ma':
+                meanIndicator.calculate(Df)
+                order = dualMeanStrategy.orderMake()
+            elif self.strategy=='KDJ':
+                kdj = KDJ(df)
+                order = kdj.order()
             exchange.trade_l(order, t)  # 传入交易所订单并进行交易
             print(order)
 

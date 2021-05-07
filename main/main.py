@@ -5,7 +5,6 @@ import datetime
 from exchange.Exchange import Exchange
 from exchange.CrawData import CrawData
 from server.market_adapter import MarketAdapter
-from server.eventProcess import  meanIndicator,dualMeanStrategy
 from exchange.BackTest import BackTest
 from exchange.RealSimulation import RealSimulation
 
@@ -17,7 +16,7 @@ def main():
     # backtest.backtest()
 
     #运行这一段即模拟实盘测算，用户只需设定bar time即可，格式即数字加"s"的str格式，这里表示多少秒，只允许用秒做单位
-    realsimulation=RealSimulation("20s")
+    realsimulation=RealSimulation("10s")
     realsimulation.simulation()
 
 

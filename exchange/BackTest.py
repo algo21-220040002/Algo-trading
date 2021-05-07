@@ -5,10 +5,11 @@ import datetime
 from exchange.Exchange import Exchange
 from exchange.CrawData import CrawData
 from server.market_adapter import MarketAdapter
-from server.eventProcess import  meanIndicator,dualMeanStrategy
+from server.eventProcess_ma import  meanIndicator,dualMeanStrategy
 import time
 from indicatorCalculator.IndicatorCalculator import IndicatorCalculator
 from application.application import application
+from server.eventProcess_KDJ import KDJ
 
 def load_obj(name):
     """
@@ -26,7 +27,8 @@ class BackTest:
     """
     def __init__(self,
                  data:pd.DataFrame,
-                 bar_time:str):
+                 bar_time:str,
+                 strategy:str='ma'):
         """
         parameter
         param data:即历史交易信息，it's dataframe whose index is datetime and columns are ['close','high','low','close']
@@ -34,6 +36,7 @@ class BackTest:
         """
         self.data=data
         self.bar_time=bar_time
+        self.strategy=strategy
 
 
     def backtest(self):
@@ -48,9 +51,13 @@ class BackTest:
             low=exchange.get_low_price(date)
             close=exchange.get_close_price(date)
             market_adapter=MarketAdapter(open,high,low,close,date)
-            df=market_adapter.storage()[-30:]
-            meanIndicator.calculate(df)
-            order = dualMeanStrategy.orderMake()
+            df=market_adapter.storage()
+            if self.strategy=='ma':
+                meanIndicator.calculate(df)
+                order = dualMeanStrategy.orderMake()
+            elif self.strategy=='KDJ':
+                kdj = KDJ(df)
+                order=kdj.order()
             exchange.trade_l(order,date)  #传入交易所订单并进行交易
             # exchange.trade_ls(order,date)
             Total_banlance=exchange.get_account_info()['Total_banlance']
